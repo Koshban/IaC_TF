@@ -2,7 +2,7 @@
 .terraform/
 *.tfstate
 *.tfstate.backup
-backend.hcl
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
