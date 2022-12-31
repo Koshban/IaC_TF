@@ -1,23 +1,3 @@
-# DEclare Variables to use as Input at various places or can be declared in .env or used in parameters while calling tf apply
-variable "server_port" {
-    description = "Port number for the HTTP requests"
-    type        = number
-    default     = 8080
-}
-
-variable "alb_sg_port" {
-    description = "Port number for the HTTP requests"
-    type        = number
-    default     = 80
-}
-
-# Provider
-provider "aws" {
-    region      = "ap-southeast-1"
-    # access_key  = ""
-    # secret_key  = ""
-}
-
 # Plain EC2/Compute
 ## EC2 definition first
 resource "aws_instance" "kaushikb" {
@@ -183,14 +163,4 @@ data "aws_subnets" "default" {
       name      = "vpc-id"
       values    = [data.aws_vpc.default.id]
     }
-}
-# Output variables
-output "public_ip" {
-    value       = aws_instance.kaushikb.public_ip
-    description = "Public IP4 IP of the instance created"
-}
-
-output "alb_dns_name" {
-    value       = aws_lb.kaushikb_lb.dns_name
-    description = "Domain Name/DNS of the Load Balancer"
 }
