@@ -8,5 +8,6 @@ terraform {
 
     # dynamodb_table = "kaushikb-terraform-s3-state" # Ur DynamoDB Table Name
     encrypt = true
+    profile = ""
   }
 }
