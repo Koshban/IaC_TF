@@ -58,8 +58,7 @@ resource "aws_launch_configuration" "kaushikbASG" {
 ## ASG Group definition
 resource "aws_autoscaling_group" "kaushikb_as_group" {
     launch_configuration    = aws_launch_configuration.kaushikbASG.name
-    vpc_zone_identifier     = data.aws_subnets.default.ids  # get the Subnet IDs to use in ASG
-  ### Target Group integration with ALB so that it knows which instance to send requests to
+    vpc_zone_identifier     = data.aws_subnets.default.ids  # get the Subnet IDs to use in ASG Target Group integration with ALB so that it knows which instance to send requests to
     target_group_arns       = [aws_lb_target_group.asg_lb_target.arn]
     health_check_type       = "ELB" #default is EC2. ELB health_check instructs ASG to use target groups's health check to determine if the instance is healthy
     # else automatically replace it 
@@ -73,6 +72,15 @@ resource "aws_autoscaling_group" "kaushikb_as_group" {
         value               = var.cluster_name
         propagate_at_launch = true
     }  
+
+    dynamic "tag" {
+        for_each = var.custom_tags
+        content {
+          key                   = tag.key 
+          value                 = tag.value 
+          propagate_at_launch   = true
+        }        
+    }
 }
 
 # Application Load Balancer to really utilise the Auto Scaling Groups

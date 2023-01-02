@@ -6,6 +6,10 @@ module "WebServer" {
     instance_type   = "m4.large"  # micro for Staging, Macro for Prod
     min_size        = 4
     max_size        = 10
+    custom_tags     = {
+        Owner       = "KaushikB"
+        ManagedBy   = "TF"
+    }
 }
 
 resource "aws_autoscaling_schedule" "scale_up_during_business_hours" {
