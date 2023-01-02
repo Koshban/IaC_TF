@@ -3,7 +3,7 @@
 *.tfstate
 *.tfstate.backup
 backend.hcl 
-
+provider.tf
 
 
 # Byte-compiled / optimized / DLL files
