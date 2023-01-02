@@ -1,6 +1,6 @@
 module "WebServer" {
-  # source                  = "../../../modules/services/WebServer"
-    source                  = "github.com/Koshban/IaC_TF//modules/services/WebServer?ref=v0.0.1"
+    source                  = "../../../../modules/services/WebServer"
+    # source                  = "github.com/Koshban/IaC_TF/tree/v0.0.1/modules/services/WebServer"
     cluster_name            = "webserver-staging"
     db_remote_state_bucket  = "s3-staging"
     db_remote_state_key     = "staging/data-stores/mysql/terraform.tfstate"  
