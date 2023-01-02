@@ -7,3 +7,26 @@ module "WebServer" {
     min_size        = 4
     max_size        = 10
 }
+
+resource "aws_autoscaling_schedule" "scale_up_during_business_hours" {
+    scheduled_action_name   = "scale_up_during_business_hours"
+    min_size                = 2
+    max_size                = 10
+    desired_capacity        = 10
+    recurrence              = "0 9 * * *"  # 09:00 Hrs every day 
+    autoscaling_group_name  = module.WebServer.asg_name
+}
+
+resource "aws_autoscaling_schedule" "scale_down_after_business_hours" {
+    scheduled_action_name   = "scale_down_after_business_hours"
+    min_size                = 2
+    max_size                = 10
+    desired_capacity        = 2
+    recurrence              = "0 18 * * *"  # 18:00 Hrs every day
+    autoscaling_group_name  = module.WebServer.asg_name
+}
+
+
+    
+
+  

@@ -7,7 +7,7 @@ resource "aws_instance" "kaushikb" {
     vpc_security_group_ids = [aws_security_group.kaushikb_instance.id]  # Use TF Expression to add reference another resource creating implicit dependency.
     #e.g. use the security group dependency here
 
-    user_data = templatefile("user-data.sh", {
+    user_data = templatefile("${path.module}/user-data.sh", {
         server_port = var.server_port
         db_address  = data.terraform_remote_state.db.outputs.address
         db_port     = data.terraform_remote_state.db.outputs.port
@@ -23,16 +23,19 @@ resource "aws_instance" "kaushikb" {
 ## Create a Security Group to override AWS EC2 default of no incoming/outgoin traffic
 resource "aws_security_group" "kaushikb_instance" {
     name = "${var.cluster_name}-asg-instance"    # "KaushikTerraFormExample_instance"
-
-    ingress {
-        from_port   = var.server_port
-        to_port     = var.server_port
-        protocol    = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]  # CIDR = IP address Range, 0.0.0.0/0 allowed incoming on 8080 from any IP
-    }
 }
 
-# Auto Scaling Group first the instance template and then the Group itself
+# In Modules use External rules rather than Inline Blocks as these make it easier to add more rules from outside the modules
+resource "aws_security_group_rule" "http_inbound_asg" {
+    type                = "ingress"
+    security_group_id   = aws_security_group.kaushikb_instance.id
+    from_port           = var.server_port
+    to_port             = var.server_port
+    protocol            = local.tcp_protocol
+    cidr_blocks         = local.all_ips # CIDR = IP address Range, 0.0.0.0/0 allowed incoming on 8080 from any IP
+}
+
+# Auto Scaling Group first the instance template and then the Group 
 ## ASG Instance definition
 resource "aws_launch_configuration" "kaushikbASG" {
     image_id        = "ami-02045ebddb047018b"  # Canonical, Ubuntu, 22.04 LTS, amd64 jammy image build on 2022-12-01
@@ -40,7 +43,7 @@ resource "aws_launch_configuration" "kaushikbASG" {
     security_groups = [aws_security_group.kaushikb_instance.id]  # Use TF Expression to add reference another resource creating implicit dependency.
     #e.g. use the security group dependency here
 
-    user_data = templatefile("user-data.sh", {
+    user_data = templatefile("${path.module}/user-data.sh", {
         server_port = var.server_port
         db_address  = data.terraform_remote_state.db.outputs.address
         db_port     = data.terraform_remote_state.db.outputs.port
@@ -66,8 +69,8 @@ resource "aws_autoscaling_group" "kaushikb_as_group" {
     desired_capacity        = 4
 
     tag {
-        key = "Name"
-        value = var.cluster_name
+        key                 = "Name"
+        value               = var.cluster_name
         propagate_at_launch = true
     }  
 }
@@ -86,12 +89,11 @@ resource "aws_lb" "kaushikb_lb" {
 
 resource "aws_lb_listener" "http" {
     load_balancer_arn   = aws_lb.kaushikb_lb.arn
-    port                = 80
+    port                = local.http_port
     protocol            = "HTTP"
 ### BY default return a simple 404 page for requests that don’t match any listener rules.
 default_action {
   type = "fixed-response"
-
   fixed_response {
     content_type = "text/plain"
     message_body = "404: page not found"
@@ -104,20 +106,26 @@ default_action {
 resource "aws_security_group" "kaushikb_lb_sg_instance" {
     name =  "${var.cluster_name}-alb"  # "KaushikTerraFormExample_alb_instance"
     ### Allow inbound HTTP Requests on port 80
-    ingress {
-        from_port   = var.alb_sg_port
-        to_port     = var.alb_sg_port
-        protocol    = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]  # CIDR = IP address Range, 0.0.0.0/0 allowed incoming on 8080 from any IP
-    }
-    ### Allow outbound to all ports 
-    egress {
-        from_port   = 0
-        to_port     = 0
-        protocol    = "-1"
-        cidr_blocks = ["0.0.0.0/0"] 
-    }
 }
+
+# In Modules use External rules rather than Inline Blocks as these make it easier to add more rules from outside the modules
+resource "aws_security_group_rule" "http_inbound" {
+    type = "ingress"
+    security_group_id = aws_security_group.kaushikb_lb_sg_instance.id 
+    from_port   = local.http_port
+    to_port     = local.http_port
+    protocol    = local.tcp_protocol
+    cidr_blocks = local.all_ips # CIDR = IP address Range, 0.0.0.0/0 allowed incoming on 8080 from any IP
+}
+resource "aws_security_group_rule" "http_outbound" {
+    type = "egress"
+    security_group_id = aws_security_group.kaushikb_lb_sg_instance.id 
+    from_port   = local.any_port
+    to_port     = local.any_port
+    protocol    = local.any_protocol
+    cidr_blocks = local.all_ips 
+}
+
 
 resource "aws_lb_target_group" "asg_lb_target" {
     name = "terraform-asg-kaushikb"
@@ -172,4 +180,14 @@ data "terraform_remote_state" "db" {
       key =   var.db_remote_state_key # "staging/data-stores/mysql/terraform.tfstate"  # The filepath within the S3 bucket where the Terraform state file should be written
       region = "ap-southeast-1" 
      }
+}
+
+# Local state
+
+locals {
+    http_port       = 80
+    any_port        = 80
+    any_protocol    = "-1"
+    tcp_protocol    = "tcp"
+    all_ips         = ["0.0.0.0/0"]
 }
