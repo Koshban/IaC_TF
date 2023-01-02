@@ -47,3 +47,21 @@ variable "custom_tags" {
     default     = {}  
 }
 
+variable "enable_autoscaling" {
+    description = "If set to true, enable auto scaling"
+    type        = bool
+    default     = false  
+}
+
+variable "ami" {
+    description = "The AMI to run in the cluster"
+    type        = string
+    default     = "ami-02045ebddb047018b"  # Canonical, Ubuntu, 22.04 LTS, amd64 jammy image build on 2022-12-01 
+}
+
+variable "server_text" {
+    description = "The text the web server should return"
+    type        = string
+    default     = "Hello, World. Girdle Up. Here I come :)"  
+}
+

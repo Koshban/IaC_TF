@@ -5,9 +5,10 @@ module "WebServer" {
     db_remote_state_bucket  = "s3-staging"
     db_remote_state_key     = "staging/data-stores/mysql/terraform.tfstate"  
 
-    instance_type   = "t2.micro"  # micro for Staging, Macro for Prod
-    min_size        = 2
-    max_size        = 2
+    instance_type       = "t2.micro"  # micro for Staging, Macro for Prod
+    min_size            = 2
+    max_size            = 2
+    enable_autoscaling  = false
 }
 # Separate resource to allow inbound port on a diff port in Staging than in Production
 # This works because we defined the ingress and egress rules in the aws_security_block as external rather than as inline groups

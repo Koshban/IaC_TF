@@ -38,8 +38,8 @@ resource "aws_security_group_rule" "http_inbound_asg" {
 # Auto Scaling Group first the instance template and then the Group 
 ## ASG Instance definition
 resource "aws_launch_configuration" "kaushikbASG" {
-    image_id        = "ami-02045ebddb047018b"  # Canonical, Ubuntu, 22.04 LTS, amd64 jammy image build on 2022-12-01
-    instance_type   =  var.instance_type     #"t2.micro" 
+    image_id        = var.ami  
+    instance_type   = var.instance_type  
     security_groups = [aws_security_group.kaushikb_instance.id]  # Use TF Expression to add reference another resource creating implicit dependency.
     #e.g. use the security group dependency here
 
@@ -47,6 +47,7 @@ resource "aws_launch_configuration" "kaushikbASG" {
         server_port = var.server_port
         db_address  = data.terraform_remote_state.db.outputs.address
         db_port     = data.terraform_remote_state.db.outputs.port
+        server_text = var.server_text
     })
     # Required when using a launch configuration with an auto scaling group. So that references can be repointed first to new
     # resource before deleting old ones
@@ -57,16 +58,26 @@ resource "aws_launch_configuration" "kaushikbASG" {
 
 ## ASG Group definition
 resource "aws_autoscaling_group" "kaushikb_as_group" {
+    name = var.cluster_name
+
     launch_configuration    = aws_launch_configuration.kaushikbASG.name
     vpc_zone_identifier     = data.aws_subnets.default.ids  # get the Subnet IDs to use in ASG Target Group integration with ALB so that it knows which instance to send requests to
     target_group_arns       = [aws_lb_target_group.asg_lb_target.arn]
     health_check_type       = "ELB" #default is EC2. ELB health_check instructs ASG to use target groups's health check to determine if the instance is healthy
     # else automatically replace it 
 
-    min_size                = var.min_size  #2
-    max_size                = var.max_size #10
-    desired_capacity        = 4
-
+    min_size                    = var.min_size  #2
+    max_size                    = var.max_size #10
+    desired_capacity            = 4
+    wait_for_capacity_timeout   = 15  # TF to wait till new instances register to the ELBs, else will rollback. Default is 10 mins
+    
+    # Use instance refresh to roll out changes so that zero-downtime is taken into account    
+    instance_refresh {
+        strategy = "Rolling"
+        preferences {
+          min_healthy_percentage = 50
+        }      
+    }
     tag {
         key                 = "Name"
         value               = var.cluster_name
@@ -83,6 +94,25 @@ resource "aws_autoscaling_group" "kaushikb_as_group" {
     }
 }
 
+resource "aws_autoscaling_schedule" "scale_up_during_business_hours" {
+    count = var.enable_autoscaling ? 1 : 0  # if it's true use Autoscaling
+    scheduled_action_name   = "scale_up_during_business_hours"
+    min_size                = 2
+    max_size                = 10
+    desired_capacity        = 10
+    recurrence              = "0 9 * * *"  # 09:00 Hrs every day 
+    autoscaling_group_name  = module.WebServer.asg_name
+}
+
+resource "aws_autoscaling_schedule" "scale_down_after_business_hours" {
+    count = var.enable_autoscaling ? 1 : 0
+    scheduled_action_name   = "scale_down_after_business_hours"
+    min_size                = 2
+    max_size                = 10
+    desired_capacity        = 2
+    recurrence              = "0 18 * * *"  # 18:00 Hrs every day
+    autoscaling_group_name  = module.WebServer.asg_name
+}
 # Application Load Balancer to really utilise the Auto Scaling Groups
 ## Create the ALB
 resource "aws_lb" "kaushikb_lb" {
