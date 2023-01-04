@@ -2,9 +2,11 @@
 .terraform/
 *.tfstate
 *.tfstate.backup
+
+# Other Env and Creds files
+dbcredentials.yml
+.env
 miscinfo.txt
-
-
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
