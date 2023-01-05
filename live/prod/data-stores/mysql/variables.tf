@@ -9,3 +9,9 @@ variable "db_password" {
   type        = string
   sensitive   = true  # This ensures Terraform won’t log the values when you run plan or apply
 }
+
+variable "db_name" {
+  description = "The name to use for the database"
+  type        = string
+  default     = "kaushikb_database_prod"
+}
