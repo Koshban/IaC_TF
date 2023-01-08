@@ -1,0 +1,2 @@
+EKS Cluster
+This folder contains an example Terraform configuration that deploys a Kubernetes cluster using EKS in an Amazon Web Services (AWS) account. This is about the simplest, most minimal EKS cluster possible: useful for learning, but NOT any sort of production usage.

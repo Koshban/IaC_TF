@@ -1,0 +1,2 @@
+Kubernetes app
+This folder contains an example Terraform configuration that deploys an app onto a Kubernetes cluster using a Kubernetes Deployment and configures a load balancer for the app using a Kubernetes Service. This is about the simplest, most minimal way to run a K8S app possible: useful for learning, but NOT any sort of production usage.
