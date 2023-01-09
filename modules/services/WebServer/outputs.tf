@@ -5,16 +5,16 @@ output "public_ip" {
 }
 
 output "asg_name" {
-    value = aws_autoscaling_group.kaushikb_as_group.name
+    value = module.asg.asg_name
     description = "Auto Scaling groups Name"  
 }
 
 output "alb_dns_name" {
-    value = aws_lb.kaushikb_lb.dns_name
+    value = module.alb.alb_dns_name
     description = "DNS of the Load Balancer"  
 }
 
-output "alb_security_group_id" {
-    value = aws_security_group.kaushikb_lb_sg_instance.id 
-    description = "The ID of the Security Group attached to the load balancer"  
+output "instance_security_group_id" {
+  value       = module.asg.instance_security_group_id
+  description = "The ID of the EC2 Instance Security Group"
 }
