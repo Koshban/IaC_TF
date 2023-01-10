@@ -54,7 +54,6 @@ variable "server_text" {
   default     = "Hello, World"
   type        = string
 }
-
 variable "server_port" {
   description = "The port the server will use for HTTP requests"
   type        = number
