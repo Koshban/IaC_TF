@@ -1,0 +1,1 @@
+Initialize with go m0od init <<repositorypath>>/<ORG_NAME>/<PROJECT_NAME> e.g. go mod init github.com/Koshban/IaC_TF
