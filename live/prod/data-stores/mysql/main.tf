@@ -1,3 +1,5 @@
+backend "s3" {
+  }
 # RDS DB Instance
 
 module "mysql_primary" {

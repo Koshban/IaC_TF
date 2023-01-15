@@ -22,10 +22,8 @@ resource "aws_launch_configuration" "kaushikbASG" {
 
 ## ASG Group definition
 resource "aws_autoscaling_group" "kaushikb_as_group" {
-    name = var.cluster_name
-
+    name                    = var.cluster_name
     launch_configuration    = aws_launch_configuration.kaushikbASG.name
-
     vpc_zone_identifier     = var.subnet_ids  # get the Subnet IDs to use in ASG Target Group integration with ALB so that it knows which instance to send requests to
     # Integrate with the ALB
     target_group_arns       = var.target_group_arns
@@ -44,6 +42,7 @@ resource "aws_autoscaling_group" "kaushikb_as_group" {
           min_healthy_percentage = 50
         }      
     }
+}
     tag {
         key                 = "Name"
         value               = var.cluster_name

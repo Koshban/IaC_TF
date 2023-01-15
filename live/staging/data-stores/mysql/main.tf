@@ -16,7 +16,8 @@
 # }
 
 # RDS DB Instance
-
+backend "s3" {
+  }
 module "mysql_primary" {
     source      = "../../../../modules/data-stores/mysql"
     providers = {

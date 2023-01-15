@@ -1,11 +1,13 @@
+backend "s3" {
+  }
 module "WebServer" {
     source                  = "../../../../modules/services/WebServer"
     # source                  = "github.com/Koshban/IaC_TF/tree/v0.0.1/modules/services/WebServer"
     cluster_name            = "webserver-staging"
-    server_text = var.server_text
-    environment            = var.environment
-    db_remote_state_bucket = var.db_remote_state_bucket
-    db_remote_state_key    = var.db_remote_state_key
+    server_text             = var.server_text
+    environment             = var.environment
+    db_remote_state_bucket  = var.db_remote_state_bucket
+    db_remote_state_key     = var.db_remote_state_key
 
     instance_type       = "t2.micro"  # micro for Staging, Macro for Prod
     min_size            = 2
