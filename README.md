@@ -1,7 +1,8 @@
 AWS Terraform Template
 
 Basic Info : Using Terraform for Creating ( on AWS ) a near real project with Compute, Keys Management, Auto Scaling and Load Balancers,
-storing state in Backend ( S3 ), segregating staging and Prod Infra management through Modules etc.
+storing state in Backend ( S3 ), segregating staging and Prod Infra management through Modules etc, Autromated Testing etc.
+Also includes multi region, multi account providers.
     
 Deploying a sample cluster of static webservers saying "Hello World, Here I come!!".
 Access the Webserver using the DNS of the ALB e.g. curl http://<alb_dns_name>
