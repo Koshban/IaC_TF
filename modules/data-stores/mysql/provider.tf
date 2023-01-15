@@ -7,8 +7,7 @@ terraform {
     }
   }
 }
-# Provider
-# provider "aws" {
-#     region      = "ap-southeast-1"
-#     profile     = "default"
-# }
+provider "aws" {
+    region      = "ap-southeast-1"
+    profile     = "default"
+}

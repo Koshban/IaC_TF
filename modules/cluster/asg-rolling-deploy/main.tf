@@ -13,7 +13,11 @@ resource "aws_launch_configuration" "kaushikbASG" {
     # resource before deleting old ones
     lifecycle {
       create_before_destroy = true
+      precondition {
+      condition     = data.aws_ec2_instance_type.instance.free_tier_eligible
+      error_message = "${var.instance_type} is not part of the AWS Free Tier!"    
     }
+  }
 }
 
 ## ASG Group definition
@@ -21,16 +25,17 @@ resource "aws_autoscaling_group" "kaushikb_as_group" {
     name = var.cluster_name
 
     launch_configuration    = aws_launch_configuration.kaushikbASG.name
+
     vpc_zone_identifier     = var.subnet_ids  # get the Subnet IDs to use in ASG Target Group integration with ALB so that it knows which instance to send requests to
-    # INtegrate with the ALB
+    # Integrate with the ALB
     target_group_arns       = var.target_group_arns
     health_check_type       = var.health_check_type #default is EC2. ELB health_check instructs ASG to use target groups's health check to determine if the instance is healthy
     # else automatically replace it 
 
     min_size                    = var.min_size  #2
     max_size                    = var.max_size #10
-    desired_capacity            = 4
-    wait_for_capacity_timeout   = 15  # TF to wait till new instances register to the ELBs, else will rollback. Default is 10 mins
+    # desired_capacity            = 4
+    # wait_for_capacity_timeout   = 15  # TF to wait till new instances register to the ELBs, else will rollback. Default is 10 mins
     
     # Use instance refresh to roll out changes so that zero-downtime is taken into account    
     instance_refresh {
@@ -46,13 +51,24 @@ resource "aws_autoscaling_group" "kaushikb_as_group" {
     }  
 
     dynamic "tag" {
-        for_each = var.custom_tags
-        content {
-          key                   = tag.key 
-          value                 = tag.value 
-          propagate_at_launch   = true
-        }        
+    for_each = {
+      for key, value in var.custom_tags:
+      key => upper(value)
+      if key != "Name"
     }
+
+    content {
+      key                 = tag.key
+      value               = tag.value
+      propagate_at_launch = true
+    }
+
+    lifecycle {
+    postcondition {
+      condition     = length(self.availability_zones) > 1
+      error_message = "You must use more than one AZ for high availability!"
+    }
+  }
 }
 
 resource "aws_autoscaling_schedule" "scale_up_during_business_hours" {
@@ -81,19 +97,9 @@ resource "aws_security_group" "kaushikb_instance" {
 }
 
 # In Modules use External rules rather than Inline Blocks as these make it easier to add more rules from outside the modules
-resource "aws_security_group_rule" "http_inbound_asg" {
-    type                = "ingress"
-    security_group_id   = aws_security_group.kaushikb_instance.id
-    from_port           = var.server_port
-    to_port             = var.server_port
-    protocol            = local.tcp_protocol
-    cidr_blocks         = local.all_ips # CIDR = IP address Range, 0.0.0.0/0 allowed incoming on 8080 from any IP
-}
-
-# In Modules use External rules rather than Inline Blocks as these make it easier to add more rules from outside the modules
 resource "aws_security_group_rule" "http_inbound" {
     type = "ingress"
-    security_group_id = aws_security_group.kaushikb_lb_sg_instance.id 
+    security_group_id = aws_security_group.kaushikb_instance.id
     from_port   = local.http_port
     to_port     = local.http_port
     protocol    = local.tcp_protocol

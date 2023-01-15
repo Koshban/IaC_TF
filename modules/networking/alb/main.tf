@@ -2,7 +2,7 @@
 resource "aws_lb" "kaushikb_lb" {
     name                = var.alb_name # "terraform-asg-kaushikb"
     load_balancer_type  = "application"
-    subnets             = data.aws_subnets.default.ids
+    subnets             = var.subnet_ids
     security_groups     = [aws_security_group.kaushikb_lb_sg_instance.id]
   
 }
@@ -47,44 +47,44 @@ resource "aws_security_group_rule" "http_outbound" {
     cidr_blocks = local.all_ips 
 }
 
-resource "aws_lb_target_group" "asg_lb_target" {
-    name = "terraform-asg-kaushikb"
-    port = var.server_port
-    protocol = "HTTP"
-    vpc_id = data.aws_vpc.default.id
+# resource "aws_lb_target_group" "asg_lb_target" {
+#     name = "terraform-asg-kaushikb"
+#     port = var.server_port
+#     protocol = "HTTP"
+#     vpc_id = data.aws_vpc.default.id
 
-    health_check {
-      path                  = "/"
-      protocol              = "HTTP"
-      matcher               = "200"  # Healthy when response back from an instance is 200 OK
-      interval              = 15
-      timeout               = 3
-      healthy_threshold     = 2
-      unhealthy_threshold   = 2
-    }  
-}
+#     health_check {
+#       path                  = "/"
+#       protocol              = "HTTP"
+#       matcher               = "200"  # Healthy when response back from an instance is 200 OK
+#       interval              = 15
+#       timeout               = 3
+#       healthy_threshold     = 2
+#       unhealthy_threshold   = 2
+#     }  
+# }
 
-resource "aws_lb_listener_rule" "asg_lb_target" {
-    listener_arn    = aws_lb_listener.http.arn
-    priority        = 100
+# resource "aws_lb_listener_rule" "asg_lb_target" {
+#     listener_arn    = aws_lb_listener.http.arn
+#     priority        = 100
 
-    condition {
-      path_pattern {
-        values = ["*"]
-      }
-    }
+#     condition {
+#       path_pattern {
+#         values = ["*"]
+#       }
+#     }
 
-    action {
-      type = "forward"
-      target_group_arn = aws_lb_target_group.asg_lb_target.arn
-    }  
-}
+#     action {
+#       type = "forward"
+#       target_group_arn = aws_lb_target_group.asg_lb_target.arn
+#     }  
+# }
 
 # Local state
 
 locals {
     http_port       = 80
-    any_port        = 80
+    any_port        = 0
     any_protocol    = "-1"
     tcp_protocol    = "tcp"
     all_ips         = ["0.0.0.0/0"]

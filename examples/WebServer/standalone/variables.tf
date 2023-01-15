@@ -1,24 +1,34 @@
+# Allows MySQL config to be injected for testing Purposes
 # ---------------------------------------------------------------------------------------------------------------------
 # REQUIRED PARAMETERS
 # You must provide a value for each of these parameters.
 # ---------------------------------------------------------------------------------------------------------------------
-variable "db_username" {
-  description = "The username for the database"
-  type        = string
-  sensitive   = true # This ensures Terraform won’t log the values when you run plan or apply
+variable "mysql_config" {
+  description = "The config for the MySQL DB"
+
+  type = object({
+    address = string
+    port    = number
+  })
+  default = {
+    address = "mock-mysql-address"
+    port    = 12345
+  }
 }
 
-variable "db_password" {
-  description = "The password for the database"
-  type        = string
-  sensitive   = true  # This ensures Terraform won’t log the values when you run plan or apply
-}
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 # These parameters have reasonable defaults.
 # ---------------------------------------------------------------------------------------------------------------------
-variable "db_name" {
-  description = "The name to use for the database"
+
+variable "server_text" {
+  description = "The text the web server should return"
+  default     = "Hello, World"
   type        = string
-  default     = "kaushikb_database_prod"
+}
+
+variable "environment" {
+  description = "The name of the environment we're deploying to"
+  type        = string
+  default     = "example"
 }
