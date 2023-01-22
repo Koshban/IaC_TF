@@ -1,7 +1,23 @@
-# Terrraform lockfile
-.terraform/
+# Terrraform lockfile and state files
+**/.terraform/*
 *.tfstate
 *.tfstate.backup
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# .tfvars files
+*.tfvars
+
+# .tfplan files
+*.tfplan
+
+# .pem files
+*.pem
+
+# .hcl files from Terraform v0.14 and newer
+*.hcl
 
 # Other Env and Creds files
 dbcredentials.yml
